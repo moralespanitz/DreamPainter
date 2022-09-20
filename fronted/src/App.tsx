@@ -1,13 +1,47 @@
 import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import axios from "axios";
 
-const InputTextComponent = (props : any) => {
+const InputTextComponent = (props: any) => {
   const [loading, setLoading] = useState(false)
+  const [sentence, setSetence] = useState("");
+
+  function generateImage(sentence: string) {
+    setLoading(true);
+    axios.post(`${URL}/generate`, {
+      sentence: sentence
+    }).then(
+      (data: any) => {
+        data.forEach(
+          (picture: any) => {
+            props.setImage((photo: any) => [...photo, picture.key])
+          }
+        )
+      }
+    ).catch(
+      error => alert(error)
+    ).finally(
+      () => setLoading(false)
+    );
+  }
+
+  function handleChange(event: any) {
+    setSetence(event.target.value);
+  }
+
+  function handleSubmit(event: any) {
+    event.preventDefault()
+    if (sentence === "") return alert("Ingresa una oración para ejecutar la operacion");
+    alert(`The sentence is ${sentence}`)
+    // generateImage(sentence);
+  }
+
+
   return (
-    <div className='h-full justify-center items-center flex flex-col px-32 gap-4'>
+    <form onSubmit={handleSubmit} className='h-full justify-center items-center flex flex-col px-32 gap-4'>
       <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Imagina algo, y escríbelo aquí</label>
-      <textarea id="message" rows={4} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Escribe lo que imaginaste"></textarea>
+      <textarea id="message" rows={4} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Escribe lo que imaginaste" onChange={handleChange}></textarea>
       {loading ?
         <button disabled type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center">
           <svg role="status" className="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -17,17 +51,22 @@ const InputTextComponent = (props : any) => {
           Loading...
         </button>
         :
-        <button type="button" onClick={() => {props.setSection(2)}} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Sueña</button>
+        <button
+          type="submit"
+          // onClick={() => { props.setSection(2) }} 
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+          Sueña
+        </button>
       }
-    </div>
+    </form >
   )
 }
 
-const GenerateImageComponent = (props : any) => {
+const GenerateImageComponent = (props: any) => {
   return (
     <div className='h-full justify-center items-center flex flex-col px-24 gap-4'>
       <div className='flex flex-row-reverse w-full'>
-        <button onClick={() => {props.setSection(1)}}>
+        <button onClick={() => { props.setSection(1) }}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" style={{ userSelect: 'auto' }} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" style={{ userSelect: "auto" }}></path></svg>
         </button>
       </div>
@@ -40,16 +79,42 @@ const GenerateImageComponent = (props : any) => {
     </div>
   )
 }
+const Test = () => {
+  const [urlImage, setUrlImage] = useState(-1);
+  async function getImage() {
+    const response = await axios({
+      method: 'post',
+      url: 'http://localhost:8000/generate',
+      data: {
+        sentence: "Hello world",
+      },
+    });
+    setUrlImage(response.data.id);
+  }
+  return (
+    <div>
+      <button className='bg-blue-300' onClick={getImage}>
+        Get image
+      </button>
+      <img src={
+        (urlImage !== -1 ?
+          `http://localhost:8000/image/${urlImage}` : "")
+      } />
+    </div>
+  )
+}
 function App() {
   const [section, setSection] = useState(1);
-  return (
+  const [image, setImage] = useState([]);
 
+  return (
     <div className='h-screen bg-white md:px-16 sm:px-10 lg:px-24 xl:px-32 2xl:px-64 py-10'>
       <div className='h-full bg-white rounded-lg shadow-2xl'>
-        {
-          section == 1 ? <InputTextComponent setSection={setSection}/>
-            : <GenerateImageComponent setSection={setSection}/>
-        }
+        {/* {
+          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage}/>
+            : <GenerateImageComponent setSection={setSection} setImage={setImage}/>
+        } */}
+        <Test />
       </div>
     </div>
   );

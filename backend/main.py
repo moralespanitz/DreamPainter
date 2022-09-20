@@ -5,6 +5,7 @@ from captcha.image import ImageCaptcha
 import googletrans
 from fastapi import FastAPI, Response, Request, HTTPException, status
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
 
@@ -30,6 +31,17 @@ def increase():
 
 # General app
 app =  FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
@@ -51,10 +63,10 @@ async def generate_image(sentence : SentenceBody):
     global img
     path = f"images/{img_id}.png"
     img.save(path)
-    file_path = os.path.join(os.getcwd(), path)
-    if os.path.exists(file_path):
-        return FileResponse(file_path, media_type='image/png')
-    return {"message": "Error while generation"}
+    # file_path = os.path.join(os.getcwd(), path)
+    # if os.path.exists(file_path):
+        # return FileResponse(file_path, media_type='image/png')
+    return {"id": img_id}
 
 @app.get("/image/{id}")
 async def get_image(id : int):
