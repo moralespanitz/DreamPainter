@@ -2,41 +2,47 @@ import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import axios from "axios";
-
+function sleep(ms : number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 const InputTextComponent = (props: any) => {
   const [loading, setLoading] = useState(false)
   const [sentence, setSetence] = useState("");
-
-  function generateImage(sentence: string) {
-    setLoading(true);
-    axios.post(`${URL}/generate`, {
-      sentence: sentence
-    }).then(
-      (data: any) => {
-        data.forEach(
-          (picture: any) => {
-            props.setImage((photo: any) => [...photo, picture.key])
-          }
-        )
-      }
-    ).catch(
-      error => alert(error)
-    ).finally(
-      () => setLoading(false)
-    );
-  }
+  const [errorSubmit, setErrorSubmit] = useState(false);
 
   function handleChange(event: any) {
     setSetence(event.target.value);
   }
 
-  function handleSubmit(event: any) {
+  async function handleSubmit(event: any) {
     event.preventDefault()
-    if (sentence === "") return alert("Ingresa una oración para ejecutar la operacion");
-    alert(`The sentence is ${sentence}`)
-    // generateImage(sentence);
-  }
+    setLoading(true);
+    if (sentence === "") {
+      alert("Ingresa una oración para ejecutar la operacion");
+      return setLoading(false);
+    }
+    await axios({
+      method: 'post',
+      url: 'http://localhost:8000/generate',
+      data: {
+        sentence: sentence,
+      },
+    })
+    .then((data) => {
+      setLoading(false);
+      props.setImage(data.data.id);
+      props.setSection(2);
+    })
+    .catch(() => setLoading(false));
+    
+    // console.log("Hello")
+    // if(response.data === undefined) {
+    //   return setLoading(false);
+    // }
 
+    // props.setImage(response.data.id);
+    // props.setSection(2);
+  }
 
   return (
     <form onSubmit={handleSubmit} className='h-full justify-center items-center flex flex-col px-32 gap-4'>
@@ -61,32 +67,60 @@ const InputTextComponent = (props: any) => {
     </form >
   )
 }
-
 const GenerateImageComponent = (props: any) => {
   return (
-    <div className='h-full justify-center items-center flex flex-col px-24 gap-4'>
+    <div className='h-full justify-center items-center flex flex-col px-24 gap-4 py-7'>
       <div className='flex flex-row-reverse w-full'>
         <button onClick={() => { props.setSection(1) }}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" style={{ userSelect: 'auto' }} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" style={{ userSelect: "auto" }}></path></svg>
         </button>
       </div>
       <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Descarga tu imagen</label>
-      <img className="max-w-lg h-auto rounded-lg" src="https://pbs.twimg.com/media/FbEF7X6XwAARQpI?format=png&name=small" alt="image description" />
+      <img 
+        className="sm:h-[320px] 2xl:h-[420px] w-auto rounded-lg"
+        alt="image description" 
+        src={
+          (props.image !== -1 ?
+            `http://localhost:8000/image/${props.image}` 
+            : "")
+        }
+        />
       <div className="flex flex-row justify-evenly w-full px-10 items-center">
         <p className='w-52'>Subelo a tus redes, y escribe #OpenDayUTEC</p>
-        <img className="max-w-lg h-32 rounded-lg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="image description" />
+        <img className="max-w-lg h-32 rounded-lg" src={`http://localhost:8000/qr/${props.image}`} alt="image description" />
       </div>
     </div>
   )
 }
-const Test = () => {
+function App() {
+  const [section, setSection] = useState(1);
+  const [image, setImage] = useState(-1);
+  return (
+    <div className='h-screen bg-white sm:px-36 xl:px-72 2xl:px-64 py-10'>
+      <div className='h-full bg-white rounded-lg shadow-2xl'>
+         {
+          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage}/>
+            : <GenerateImageComponent setSection={setSection} setImage={setImage} image={image}/>
+        }
+        {/* <Test /> */}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+/**
+ * const Test = () => {
   const [urlImage, setUrlImage] = useState(-1);
+  const [prompt, setPrompt] = useState("");
+  
   async function getImage() {
     const response = await axios({
       method: 'post',
       url: 'http://localhost:8000/generate',
       data: {
-        sentence: "Hello world",
+        sentence: prompt,
       },
     });
     setUrlImage(response.data.id);
@@ -103,21 +137,4 @@ const Test = () => {
     </div>
   )
 }
-function App() {
-  const [section, setSection] = useState(1);
-  const [image, setImage] = useState([]);
-
-  return (
-    <div className='h-screen bg-white md:px-16 sm:px-10 lg:px-24 xl:px-32 2xl:px-64 py-10'>
-      <div className='h-full bg-white rounded-lg shadow-2xl'>
-        {/* {
-          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage}/>
-            : <GenerateImageComponent setSection={setSection} setImage={setImage}/>
-        } */}
-        <Test />
-      </div>
-    </div>
-  );
-}
-
-export default App;
+ */

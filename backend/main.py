@@ -2,6 +2,7 @@ import io
 import os
 import qrcode
 from captcha.image import ImageCaptcha
+# pip install googletrans==3.1.0a0
 import googletrans
 from fastapi import FastAPI, Response, Request, HTTPException, status
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
