@@ -2,7 +2,7 @@
   <br>
   <a href="#"><img src="./assets/logo.png" alt="" width="200"></a>
   <br>
-  DreamPainter
+  DreamPainter 🖌️
   <br>
 </h1>
 <p align="center">
@@ -16,10 +16,12 @@
 
 A stable difussion SaaS for UTEC Open Day. The project contains:
 
-- Stable Difussion model pretrained
+- [Stable Difussion model pretrained](https://github.com/CompVis/stable-diffusion)
 - Platform to set sentence and get image generated
 - Set watemarker to images
 - Pass by Captcha
 - Scan QR and download image
 
 
+### References 
+Model pretrained: Robin Rombach and Andreas Blattmann and Dominik Lorenz and Patrick Esser and Björn Ommer
