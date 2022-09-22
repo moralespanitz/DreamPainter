@@ -16,11 +16,11 @@
 
 A stable diffussion SaaS The project contains:
 
-- [Stable Difussion model pretrained](https://github.com/CompVis/stable-diffusion)
-- Platform to set sentence and get image generated
-- Set watemarker to images
-- Pass by Captcha
-- Scan QR and download image
+- [X] [Stable Difussion model pretrained](https://github.com/CompVis/stable-diffusion)
+- [X] Platform to set sentence and get image generated
+- [X] Scan QR and download image
+- [ ] Set watemarker to images
+- [ ] Pass by Captcha
 
 
 ### References 
