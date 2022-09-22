@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi">
 </p>
 
-A stable difussion SaaS The project contains:
+A stable diffussion SaaS The project contains:
 
 - [Stable Difussion model pretrained](https://github.com/CompVis/stable-diffusion)
 - Platform to set sentence and get image generated
