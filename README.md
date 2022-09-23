@@ -25,6 +25,10 @@ The project contains:
 - [ ] Set watemarker to images
 - [ ] Pass by Captcha
 
-
+### How to run
+```
+backend$moralespanitz uvicorn main:app --reload
+fronted$moralespanitz npm run start
+```
 ### References 
 Model pretrained: Robin Rombach and Andreas Blattmann and Dominik Lorenz and Patrick Esser and Björn Ommer

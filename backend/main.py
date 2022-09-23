@@ -67,6 +67,8 @@ async def generate_image(sentence: SentenceBody):
     img_id = increase()
     global model
     image_url = model.predict(prompt=en_sentence)
+    image_url = image_url[0]
+    print(image_url)
     qr = qrcode.make(image_url)
     path = f"./qrs/{img_id}.png"
     stream = io.BytesIO()
