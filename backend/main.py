@@ -5,7 +5,8 @@ import qrcode
 import googletrans
 from fastapi import FastAPI, Response, Request, HTTPException, status
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from threading import Lock
+# from threading import Lock
+import replicate
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from pydantic import BaseModel
@@ -14,24 +15,27 @@ from pydantic import BaseModel
 Global variables
 """
 # Counter
-
-lock = Lock()
+_counter = 1000
 URL = "localhost:8000"
 # Google Translate
 translator = googletrans.Translator()
 
 # Spanish to English
-def _spanish_to_english(sentence : str) -> str:
+
+
+def _spanish_to_english(sentence: str) -> str:
     obj = translator.translate(sentence, dest='en')
     return obj.text
 
+
 def increase():
-    global _counter 
+    global _counter
     _counter += 1
     return _counter
 
+
 # General app
-app =  FastAPI()
+app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:3000",
@@ -44,34 +48,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"API": "DreamPainter"}
 
-class SentenceBody(BaseModel):
-    sentence: str 
 
-# TODO: remove
-img = Image.open("images/1001.png")
+class SentenceBody(BaseModel):
+    sentence: str
+
+
+model = replicate.models.get("stability-ai/stable-diffusion")
 
 @app.post("/generate")
-async def generate_image(sentence : SentenceBody):
+async def generate_image(sentence: SentenceBody):
     # Translate from spanish to english
     en_sentence = _spanish_to_english(sentence.sentence)
-    # Lock
-    lock.acquire()
-    # Get image id
     img_id = increase()
-    # Unlock
-    lock.release()
-    # Save to image folders
-    global img
-    path = f"images/{img_id}.png"
-    img.save(path)
-    return {"id": img_id}
+    global model
+    image_url = model.predict(prompt=en_sentence)
+    qr = qrcode.make(image_url)
+    path = f"./qrs/{img_id}.png"
+    stream = io.BytesIO()
+    qr.save(path)
+    return {
+        "id": img_id,
+        "url": image_url
+    }
 
 @app.get("/image/{id}")
-async def get_image(id : int):
+async def get_image(id: int):
     try:
         file_path = os.path.join(os.getcwd(), f"images/{id}.png")
         if os.path.exists(file_path):
@@ -80,14 +86,10 @@ async def get_image(id : int):
     except:
         return {"message": "File nout found"}
 
+
 @app.get("/qr/{id}")
-def get_qr(id: int):
-    file_path = os.path.join(os.getcwd(), f"images/{id}.png")
+def get_qr(id : int):
+    file_path = os.path.join(os.getcwd(), f"qrs/{id}.png")
     if os.path.exists(file_path):
-        image_url = f"{URL}/image/{id}"
-        qr = qrcode.make(image_url)
-        path = f"./qrs/{id}.png"
-        stream = io.BytesIO()
-        qr.save(path)
-        return FileResponse(path)
+        return FileResponse(file_path)
     return {"message": "Image generated not exists"}

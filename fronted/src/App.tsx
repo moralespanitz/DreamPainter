@@ -30,18 +30,13 @@ const InputTextComponent = (props: any) => {
     })
     .then((data) => {
       setLoading(false);
-      props.setImage(data.data.id);
+      // props.setImage(data.data.id);
+      props.setImage(data.data.url);
+      console.log(data.data.id);
+      props.setQr(data.data.id);
       props.setSection(2);
     })
     .catch(() => setLoading(false));
-    
-    // console.log("Hello")
-    // if(response.data === undefined) {
-    //   return setLoading(false);
-    // }
-
-    // props.setImage(response.data.id);
-    // props.setSection(2);
   }
 
   return (
@@ -81,13 +76,14 @@ const GenerateImageComponent = (props: any) => {
         alt="image description" 
         src={
           (props.image !== -1 ?
-            `http://localhost:8000/image/${props.image}` 
+            // `http://localhost:8000/image/${props.image}` 
+            props.image
             : "")
         }
         />
       <div className="flex flex-row justify-evenly w-full px-10 items-center">
         <p className='w-52'>Subelo a tus redes, y escribe #OpenDayUTEC</p>
-        <img className="max-w-lg h-32 rounded-lg" src={`http://localhost:8000/qr/${props.image}`} alt="image description" />
+        <img className="max-w-lg h-32 rounded-lg" src={`http://localhost:8000/qr/${props.qr}`} alt="image description" />
       </div>
     </div>
   )
@@ -95,12 +91,13 @@ const GenerateImageComponent = (props: any) => {
 function App() {
   const [section, setSection] = useState(1);
   const [image, setImage] = useState(-1);
+  const [qr, setQr] = useState(-1);
   return (
     <div className='h-screen bg-white sm:px-36 xl:px-72 2xl:px-64 py-10'>
       <div className='h-full bg-white rounded-lg shadow-2xl'>
          {
-          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage}/>
-            : <GenerateImageComponent setSection={setSection} setImage={setImage} image={image}/>
+          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr}/>
+            : <GenerateImageComponent setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr}/>
         }
         {/* <Test /> */}
       </div>
