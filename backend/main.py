@@ -67,13 +67,6 @@ origins = [
 async def root():
     return {"API": "DreamPainter"}
 
-
-class SentenceBody(BaseModel):
-    sentence: str
-
-
-# model = replicate.models.get("stability-ai/stable-diffusion")
-
 @app.post("/generate")
 async def generate_image():
     # Original text

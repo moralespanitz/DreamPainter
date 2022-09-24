@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import axios from "axios";
+import { MantineProvider, Text } from '@mantine/core';
+import { Prompt } from './prompt';
+import Result from './result';
+
 function sleep(ms : number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -25,7 +29,7 @@ const InputTextComponent = (props: any) => {
       method: 'post',
       url: 'http://localhost:8000/generate',
       data: {
-        sentence: sentence,
+        prompt: sentence,
       },
     })
     .then((data) => {
@@ -92,46 +96,17 @@ function App() {
   const [section, setSection] = useState(1);
   const [image, setImage] = useState(-1);
   const [qr, setQr] = useState(-1);
+  const [prompt, setPrompt] = useState(-1);
+  
   return (
-    <div className='h-screen bg-white sm:px-36 xl:px-72 2xl:px-64 py-10'>
-      <div className='h-full bg-white rounded-lg shadow-2xl'>
+    <MantineProvider withGlobalStyles withNormalizeCSS>
+
          {
-          section == 1 ? <InputTextComponent setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr}/>
-            : <GenerateImageComponent setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr}/>
+          section == 1 ? <Prompt setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr} setPrompt={setPrompt} prompt={prompt}/>
+            : <Result setSection={setSection} setImage={setImage} image={image} qr={qr} setQr={setQr} setPrompt={setPrompt} prompt={prompt}/>
         }
-        {/* <Test /> */}
-      </div>
-    </div>
+    </MantineProvider>
   );
 }
 
 export default App;
-
-/**
- * const Test = () => {
-  const [urlImage, setUrlImage] = useState(-1);
-  const [prompt, setPrompt] = useState("");
-  
-  async function getImage() {
-    const response = await axios({
-      method: 'post',
-      url: 'http://localhost:8000/generate',
-      data: {
-        sentence: prompt,
-      },
-    });
-    setUrlImage(response.data.id);
-  }
-  return (
-    <div>
-      <button className='bg-blue-300' onClick={getImage}>
-        Get image
-      </button>
-      <img src={
-        (urlImage !== -1 ?
-          `http://localhost:8000/image/${urlImage}` : "")
-      } />
-    </div>
-  )
-}
- */
