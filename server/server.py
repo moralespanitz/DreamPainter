@@ -4,6 +4,7 @@ Server API
 Generate image in Cloud
 """
 # Import dependencies
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from torch import autocast
@@ -47,9 +48,11 @@ class GenerateImage(BaseModel):
     id : int
 
 def submit_image(file_path : str, id):
-    CloudinaryImage(file_path, public_id=id).image(width=70, height=53, crop="scale")
-    image_cdn_url = cloudinary.CloudinaryImage(id).build_url()
-    return image_cdn_url
+    if os.path.exists(file_path):
+        CloudinaryImage(file_path, public_id=id).image(width=70, height=53, crop="scale")
+        image_cdn_url = cloudinary.CloudinaryImage(id).build_url()
+        return image_cdn_url
+    return "Cdn not found"
 
 @server.post("/generate")
 async def generate_image(payload : GenerateImage):
@@ -57,7 +60,7 @@ async def generate_image(payload : GenerateImage):
     prompt = payload.prompt
     with autocast("cuda"):
         image = pipe(prompt)["sample"][0]  
-    file_path = "files/{id}.png"
+    file_path = os.path.join(os.getcwd(), f"files/{id}.png")
     image.save(file_path)
     # Send image to CDN
     image_cdn_url = submit_image(file_path, id)
