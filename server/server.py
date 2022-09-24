@@ -13,6 +13,8 @@ from PIL import Image
 from pydantic import BaseModel
 import cloudinary
 from cloudinary import CloudinaryImage
+import cloudinary.uploader
+import cloudinary.api
 # App
 server = FastAPI()
 
@@ -48,20 +50,21 @@ class GenerateImage(BaseModel):
     id : int
 
 def submit_image(file_path : str, id):
-    if os.path.exists(file_path):
-        CloudinaryImage(file_path, public_id=id).image(width=70, height=53, crop="scale")
-        image_cdn_url = cloudinary.CloudinaryImage(id).build_url()
-        return image_cdn_url
-    return "Cdn not found"
+    img_code = str(id)
+    cloudinary.uploader.upload(file_path, public_id=img_code, unique_filename = False, overwrite=True)
+    srcURL = cloudinary.CloudinaryImage(img_code).build_url()
+    return srcURL
 
 @server.post("/generate")
 async def generate_image(payload : GenerateImage):
+    # Serialize payload
     id = payload.id
     prompt = payload.prompt
+    # Generate image
     with autocast("cuda"):
         image = pipe(prompt)["sample"][0]  
     file_path = os.path.join(os.getcwd(), f"files/{id}.png")
     image.save(file_path)
     # Send image to CDN
-    image_cdn_url = submit_image(file_path, id)
+    image_cdn_url = submit_image(file_path, str(id))
     return image_cdn_url
