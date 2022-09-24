@@ -1,24 +1,25 @@
 """
 Server API
-
 Generate image in Cloud
 """
 # Import dependencies
 import os
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
-from flask import Flask, request
-from torch import autocast
+
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
+from cloudinary import CloudinaryImage
 from diffusers import StableDiffusionPipeline
+from flask import Flask, request
 from PIL import Image
 from pydantic import BaseModel
-import cloudinary
-from cloudinary import CloudinaryImage
-import cloudinary.uploader
-import cloudinary.api
+from torch import autocast
+import qrcode
+import googletrans
+
 # App
 app = Flask(__name__)
-
+translator = googletrans.Translator()
 cloudinary.config( 
   cloud_name = "dr4luonmq", 
   api_key = "783617815293663", 
@@ -30,18 +31,27 @@ origins = [
     "http://localhost:8000",
 ]
 
-# TODO: Add host domain
+def _spanish_to_english(sentence: str) -> str:
+    """
+    Spanish to English model
+    """
+    obj = translator.translate(sentence, dest='en')
+    return obj.text
 
-# server.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+def increase():
+    """
+    Incease image ID by generation
+    """
+    global _counter
+    _counter += 1
+    return _counter
+def make_qr(image_url, img_id):
+    qr = qrcode.make(image_url)
+    path= f"./qrs/{img_id}.png"
+    qr.save(path)
+    return submit_image(path, img_id)
 
 # Model
-
 pipe = StableDiffusionPipeline.from_pretrained(
 	"CompVis/stable-diffusion-v1-4", 
 	use_auth_token=True
@@ -61,16 +71,22 @@ def submit_image(file_path : str, id):
 def generate_image():
     # Serialize payload
     payload = request.get_json()
-    id = payload.get('id')
+    id = increase()
     prompt = payload.get('prompt')
+    en_prompt = _spanish_to_english(prompt)
     # Generate image
     with autocast("cuda"):
-        image = pipe(prompt)["sample"][0]  
+        image = pipe(en_prompt)["sample"][0]  
     file_path = os.path.join(os.getcwd(), f"files/{id}.png")
     image.save(file_path)
     # Send image to CDN
     image_cdn_url = submit_image(file_path, str(id))
-    return image_cdn_url
+    qr_url = make_qr(image_cdn_url, id)
+    return {
+        "image_cdn_url": image_cdn_url,
+        "qr_cdn_url": qr_url,
+        "prompt": prompt
+    }
 
 if __name__ == "__main__":
     app.run(port=8080, debug=True)
