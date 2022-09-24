@@ -5,8 +5,9 @@ Generate image in Cloud
 """
 # Import dependencies
 import os
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+# from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, request
 from torch import autocast
 from diffusers import StableDiffusionPipeline
 from PIL import Image
@@ -16,7 +17,7 @@ from cloudinary import CloudinaryImage
 import cloudinary.uploader
 import cloudinary.api
 # App
-server = FastAPI()
+app = Flask(__name__)
 
 cloudinary.config( 
   cloud_name = "dr4luonmq", 
@@ -30,13 +31,14 @@ origins = [
 ]
 
 # TODO: Add host domain
-server.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# server.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Model
 
@@ -55,11 +57,12 @@ def submit_image(file_path : str, id):
     srcURL = cloudinary.CloudinaryImage(img_code).build_url()
     return srcURL
 
-@server.post("/generate")
-async def generate_image(payload : GenerateImage):
+@app.post("/generate")
+def generate_image():
     # Serialize payload
-    id = payload.id
-    prompt = payload.prompt
+    payload = request.get_json()
+    id = payload.get('id')
+    prompt = payload.get('prompt')
     # Generate image
     with autocast("cuda"):
         image = pipe(prompt)["sample"][0]  
@@ -68,3 +71,6 @@ async def generate_image(payload : GenerateImage):
     # Send image to CDN
     image_cdn_url = submit_image(file_path, str(id))
     return image_cdn_url
+
+if __name__ == "__main__":
+    app.run(port=8080, debug=True)
