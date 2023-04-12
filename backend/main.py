@@ -17,7 +17,7 @@ import cloudinary.api
 app = Flask(__name__)
 
 cloudinary.config( 
-  cloud_name = "dr4luonmq", 
+  cloud_name = "TEST", 
   api_key = "TEST", 
   api_secret = "TEST" 
 )
