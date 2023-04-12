@@ -18,8 +18,8 @@ app = Flask(__name__)
 
 cloudinary.config( 
   cloud_name = "dr4luonmq", 
-  api_key = "783617815293663", 
-  api_secret = "iRHTK7KUGuAaXxOPNu9mw-btSDY" 
+  api_key = "TEST", 
+  api_secret = "TEST" 
 )
 
 """
